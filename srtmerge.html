@@ -71,9 +71,12 @@
           $('#add_file_button').prop("disabled", fileInput.files.length == 0);
         };
 
-        function AddFileToTable(file) {
+        function AddFileToTable(fileInfo) {
           $('#empty_file_in_list').hide();
-          var row = "<tr><td>" + file.name + "</td><td>Color</td><td>Subtitle sample from file</td></tr>";
+
+          var fname = fileInfo.file.name;
+          var sample = fileInfo.data[Math.floor(Math.random() * fileInfo.data.length)];
+          var row = "<tr><td>" + fname + "</td><td>Color</td><td>" + sample + "</td></tr>";
           $('#files_list_block tbody').append(row);
         };
 
@@ -81,16 +84,30 @@
           $('#result_file_block button[type=submit]').prop("disabled", window.srt.files.length < 2);
         };
 
+        function ParseSrtFile(data) {
+          // var lines = data.split('\n');
+          // for(var line = 0; line < lines.length; line++){
+          //   console.log(lines[line]);
+          // }
+
+          return data.split('\n');
+        }
+
         function AddFile(file) {
-          console.log('AddFile called.');
+          var reader = new FileReader();
+          var fileInfo = {file: file};
 
-          window.srt.files.push(file);
-          AddFileToTable(file);
+          reader.onload = function(progressEvent){
+            fileInfo.data = ParseSrtFile(this.result);
 
-          SuggestOutputFileName(file);
+            window.srt.files.push(fileInfo);
+            AddFileToTable(fileInfo);
 
-          CheckDownloadButtonDisabled();
-          console.log(file);
+            SuggestOutputFileName(file);
+
+            CheckDownloadButtonDisabled();
+          };
+          reader.readAsText(file);
         };
 
         function SuggestOutputFileName(file) {
