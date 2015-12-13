@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Subtitle Merger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>Subtitles merger</h1>
+      </div>
+      <p class="lead">This is a tool to combine srt subtitle files into one.</p>
+
+
+      <div id='add_files_block' class='well'>
+        <form action='#' id='add_files_form' class='form-inline'>
+          <div class="form-group">
+            <!-- <label for="srt_file">SRT file</label> -->
+            <input type="file" id="srt_file" accept='.srt'>
+            <!-- <p class="help-block">Add SRT file here.</p> -->
+          </div>
+
+          <button type="submit" class="btn btn-default">Add file</button>
+        </form>
+      </div>
+
+      <div id='files_list_block' class='well'>
+        <table class='table table-condensed'>
+          <thead>
+            <tr>
+              <th>File name</th>
+              <th>Color</th>
+              <th>Subtitle sample from file</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id='empty_file_in_list'>
+              <td colspan='3'>No files added yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id='result_file_block' class='well'>
+        <form action='#' id='download_result_file_form' class='form-inline'>
+          <div class="form-group">
+            <label for="result_filename">Merged file name: </label>
+            <input id="result_filename">
+            <!-- <p class="help-block">Add SRT file here.</p> -->
+          </div>
+
+          <button type="submit" class="btn btn-default" disabled='disabled'>Download</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+
+    </script>
+  </body>
+</html>
