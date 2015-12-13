@@ -26,7 +26,7 @@
             <!-- <p class="help-block">Add SRT file here.</p> -->
           </div>
 
-          <button type="submit" class="btn btn-default">Add file</button>
+          <button id='add_file_button' type="submit" class="btn btn-default" disabled='disabled'>Add file</button>
         </form>
       </div>
 
@@ -61,7 +61,11 @@
     </div>
 
     <script>
-
+      $(function() {
+        $('#srt_file').on('change', function(e) {
+          $('#add_file_button').prop("disabled", this.files.length == 0);
+        });
+      });
     </script>
   </body>
 </html>
