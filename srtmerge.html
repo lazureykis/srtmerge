@@ -62,8 +62,20 @@
 
     <script>
       $(function() {
+        function refreshAddFileButtonDisabled() {
+          var fileInput = document.getElementById('srt_file');
+          $('#add_file_button').prop("disabled", fileInput.files.length == 0);
+        };
+
         $('#srt_file').on('change', function(e) {
-          $('#add_file_button').prop("disabled", this.files.length == 0);
+          refreshAddFileButtonDisabled();
+        });
+
+        $('#add_files_block form').on('submit', function(e) {
+          e.preventDefault();
+          console.log('AddFile called.');
+          this.reset();
+          refreshAddFileButtonDisabled();
         });
       });
     </script>
