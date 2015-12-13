@@ -62,10 +62,25 @@
 
     <script>
       $(function() {
+
         function refreshAddFileButtonDisabled() {
           var fileInput = document.getElementById('srt_file');
           $('#add_file_button').prop("disabled", fileInput.files.length == 0);
         };
+
+        function AddFile(file) {
+          console.log('AddFile called.');
+
+          SuggestOutputFileName(file);
+          console.log(file);
+        };
+
+        function SuggestOutputFileName(file) {
+          fname = $('#result_filename');
+          if (fname.val() == "") {
+            fname.val(file.name.replace('.srt', '.merged.srt'))
+          }
+        }
 
         $('#srt_file').on('change', function(e) {
           refreshAddFileButtonDisabled();
@@ -73,7 +88,8 @@
 
         $('#add_files_block form').on('submit', function(e) {
           e.preventDefault();
-          console.log('AddFile called.');
+          file = document.getElementById('srt_file').files[0];
+          AddFile(file);
           this.reset();
           refreshAddFileButtonDisabled();
         });
