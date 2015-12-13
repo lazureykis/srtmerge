@@ -117,6 +117,31 @@
           }
         }
 
+        function GetMergedFileData() {
+          ret = [];
+          for(var i = 0; i < window.srt.files.length; i++){
+            fileInfo = window.srt.files[i];
+            for(var k = 0; k < fileInfo.data.length; k++){
+              ret.push(fileInfo.data[k]);
+            }
+          }
+
+          return ret.join("\n");
+        };
+
+        function DownloadFileFromMemory(filename, text) {
+          var element = document.createElement('a');
+          element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+          element.setAttribute('download', filename);
+
+          element.style.display = 'none';
+          document.body.appendChild(element);
+
+          element.click();
+
+          document.body.removeChild(element);
+        }
+
         $('#srt_file').on('change', function(e) {
           refreshAddFileButtonDisabled();
         });
@@ -131,7 +156,10 @@
 
         $('#download_result_file_form').on('submit', function(e) {
           e.preventDefault();
-          alert('Not implemented yet.');
+          var data = GetMergedFileData();
+          fname = $('#result_filename').val();
+          console.log(data);
+          DownloadFileFromMemory(fname, data);
         });
       });
     </script>
