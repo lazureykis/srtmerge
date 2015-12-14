@@ -84,13 +84,126 @@
           $('#result_file_block button[type=submit]').prop("disabled", window.srt.files.length < 2);
         };
 
-        function ParseSrtFile(data) {
-          // var lines = data.split('\n');
-          // for(var line = 0; line < lines.length; line++){
-          //   console.log(lines[line]);
-          // }
+        function ParseTime(s) {
+          return s;
+        }
 
-          return data.split('\n');
+        function ParseTimes(s) {
+          var strings = s.split(" --> ");
+          return [ParseTime(strings[0]), ParseTime(strings[1])]
+        }
+
+        function ParseSrtFile(data) {
+          var lines = data.split('\n');
+          var state = 1;
+          var srt_lines = [];
+          var time_from = null;
+          var time_to = null;
+          var content = [];
+
+          for(var i = 0; i < lines.length; i++){
+            s = lines[i];
+            console.log(s);
+
+            switch(state) {
+
+              // Start, looking for first subtitle
+              case 1:
+
+                // Blank line: next=1
+                if (s == "") {
+                  break;
+                }
+
+                // Line number: next=2
+                if (/^\d+$/.test(s)) {
+                  state = 2;
+                  break;
+                }
+
+                // Anything else: bail
+                break;
+
+
+              // Want timestamps
+              case 2:
+                content = [];
+                time_from = null;
+                time_to = null;
+
+                // Timestamps line: next=3, store timestamps
+                if (/^\d{2}:\d{2}:\d{2},\d{3} --> \d\d:\d\d:\d\d,\d{3}/.test(s)) {
+                  var times = ParseTimes(s);
+                  time_from = times[0];
+                  time_to = times[1];
+
+                  state = 3;
+                  break;
+                }
+
+                // Anything else: bail
+                break;
+
+
+              // Reading subtitle, first line of text
+              case 3:
+
+                // Blank line: next=5
+                if (s == "") {
+                  state = 5;
+                  break;
+                }
+
+                // Anything else: next=4, append line text to current subtitle text
+                state = 4;
+                content.push(s);
+                break;
+
+
+              // Reading subtitle, following line of text
+              case 4:
+
+                // Blank line: next=5
+                if (s == "") {
+                  state = 5;
+                  break;
+                }
+
+                // Anything else: next=4, append line text to current subtitle text
+                state = 4;
+                content.push(s);
+                break;
+
+
+              // Reading subtitle, on blank line
+              case 5:
+
+                // Blank line: next=5, append line break to current subtitle text
+                if (s == "") {
+                  state = 5;
+                  content.push(s);
+                  break;
+                }
+
+                // Line number: next=2
+                if (/^\d+$/.test(s)) {
+                  state = 2;
+                  srt_lines.push({from: time_from, to: time_to, content: content.join("\n")});
+                  break;
+                }
+
+                // Anything else: next=4, append two line breaks and line text to current subtitle text
+                state = 4
+                content.push(s);
+                break;
+            }
+
+          }
+
+          // EOF: complete. build last srt line.
+          srt_lines.push({from: time_from, to: time_to, content: content.join("\n")});
+
+          return srt_lines;
         }
 
         function AddFile(file) {
