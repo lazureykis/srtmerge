@@ -79,7 +79,7 @@
 
           var fname = fileInfo.file.name;
           var sample = fileInfo.data[Math.floor(Math.random() * fileInfo.data.length)].content;
-          var row = "<tr><td>" + fname + "</td><td>Color</td><td>" + sample + "</td></tr>";
+          var row = "<tr class='uploaded_file'><td>" + fname + "</td><td>Color</td><td>" + sample.replace("\n", "<br />") + "</td></tr>";
           $('#files_list_block tbody').append(row);
         };
 
@@ -98,7 +98,7 @@
           return [ParseTime(strings[0]), ParseTime(strings[1])]
         }
 
-        function ParseSrtFile(data) {
+        function ParseSrtFile(data, fileindex) {
           var lines = data.split('\n');
           var state = 1;
           var srt_lines = [];
@@ -192,7 +192,7 @@
                 // Line number: next=2
                 if (/^\d+$/.test(s)) {
                   state = 2;
-                  srt_lines.push({from: time_from, to: time_to, content: content.join("\n")});
+                  srt_lines.push({from: time_from, to: time_to, content: content.join("\n"), fileindex: fileindex});
                   break;
                 }
 
@@ -205,7 +205,7 @@
           }
 
           // EOF: complete. build last srt line.
-          srt_lines.push({from: time_from, to: time_to, content: content.join("\n")});
+          srt_lines.push({from: time_from, to: time_to, content: content.join("\n"), fileindex: fileindex});
 
           return srt_lines;
         }
@@ -215,7 +215,8 @@
           var fileInfo = {file: file};
 
           reader.onload = function(progressEvent){
-            fileInfo.data = ParseSrtFile(this.result);
+            var fileindex = $('#files_list_block tbody tr').length;
+            fileInfo.data = ParseSrtFile(this.result, fileindex);
 
             window.srt.files.push(fileInfo);
             AddFileToTable(fileInfo);
@@ -240,23 +241,66 @@
           return result;
         }
 
-        function GetMergedFileData() {
-          ret = [];
-          var z = 1;
-          for(var i = 0; i < window.srt.files.length; i++){
-            fileInfo = window.srt.files[i];
-            for(var k = 0; k < fileInfo.data.length; k++, z++){
-              var srt_line = fileInfo.data[k];
+        function recordToText(num, record) {
+          ret = []
+          ret.push(num);
+          var times = [srtTimeString(record.from), srtTimeString(record.to)].join(" --> ");
+          ret.push(times);
+          ret.push(record.content);
+          return ret.join("\n");
+        };
 
-              ret.push(z);
-              var times = [srtTimeString(srt_line.from), srtTimeString(srt_line.to)].join(" --> ");
-              ret.push(times);
-              ret.push(srt_line.content);
-              ret.push(null);
+        function GetMergedFileData() {
+          var data = []
+          window.srt.files.forEach(function(file){
+            file.data.forEach(function(record){
+              data.push(record);
+            });
+          });
+
+          data.sort(function(a, b){
+            return a.from - b.from;
+          });
+
+          var merged_records = [];
+          var index_start = 0;
+          while(index_start < data.length) {
+            var start = data[index_start].from;
+            var finish = data[index_start].to;
+            var rec_text = data[index_start].content;
+            var items = [data[index_start]];
+            var index_end = index_start + 1;
+
+            while(index_end < data.length && data[index_end].from < finish) {
+              var rec = data[index_end];
+              items.push(rec);
+              finish = Math.max(finish, start + (rec.to - rec.from) * 2 / 3);
+              index_end++;
+            }
+
+            items = items.sort(function(a, b) {
+              return a.fileindex - b.fileindex;
+            });
+
+            contents = items.map(function(t){
+              return t.content;
+            });
+            merged_records.push({from: start, to: finish, content: contents.join("\n")});
+
+            if (index_end < data.length) {
+              index_start = index_end;
+            } else {
+              break;
             }
           }
 
-          return ret.join("\n");
+          var z = 0;
+          var ret = merged_records.map(function(item){
+            z++;
+            return recordToText(z, item);
+          });
+
+          return ret.join("\n\n");
         };
 
         function DownloadFileFromMemory(filename, text) {
