@@ -75,7 +75,7 @@
           $('#empty_file_in_list').hide();
 
           var fname = fileInfo.file.name;
-          var sample = fileInfo.data[Math.floor(Math.random() * fileInfo.data.length)];
+          var sample = fileInfo.data[Math.floor(Math.random() * fileInfo.data.length)].content;
           var row = "<tr><td>" + fname + "</td><td>Color</td><td>" + sample + "</td></tr>";
           $('#files_list_block tbody').append(row);
         };
@@ -85,7 +85,9 @@
         };
 
         function ParseTime(s) {
-          return s;
+          var times = s.match(/^(\d{2}):(\d{2}):(\d{2}),(\d{3})/)
+          var total = (parseInt(times[1]) * 3600) + (parseInt(times[2]) * 60) + (parseInt(times[3])) + (parseInt(times[4]) * 0.001);
+          return total;
         }
 
         function ParseTimes(s) {
