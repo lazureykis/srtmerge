@@ -269,55 +269,78 @@
           }
         };
 
+        function getPartsForPoint(all_parts, point) {
+          var parts = [];
+
+          all_parts.forEach(function(p) {
+            if (p.from <= point && p.to > point) {
+              var part_dup = JSON.parse(JSON.stringify(p));
+              parts.push(part_dup);
+            }
+
+          });
+
+          return parts;
+        };
+
         function GetMergedFileData() {
-          var data = []
+          var data = [];
+          var points = new Set();
+
           window.srt.files.forEach(function(file){
             file.data.forEach(function(record){
               data.push(record);
+              points.add(record.from);
+              points.add(record.to);
             });
           });
 
-          data.sort(function(a, b){
-            return a.from - b.from;
-          });
+          var points = Array.from(points).sort(function(a,b){ return a - b; });
 
-          var merged_records = [];
-          var index_start = 0;
-          while(index_start < data.length) {
-            var start = data[index_start].from;
-            var finish = data[index_start].to;
-            var rec_text = data[index_start].content;
-            var items = [data[index_start]];
-            var index_end = index_start + 1;
+          var new_parts = [];
 
-            while(index_end < data.length && data[index_end].from < finish) {
-              var rec = data[index_end];
-              items.push(rec);
-              finish = Math.max(finish, start + (rec.to - rec.from) * 2 / 3);
-              index_end++;
+          points.forEach(function(point){
+            var parts = getPartsForPoint(data, point);
+            if (parts.length == 0) {
+              return;
             }
 
-            items = items.sort(function(a, b) {
+            var last_part = null;
+            if (new_parts.length > 0) {
+              last_part = new_parts[new_parts.length-1];
+            }
+
+            if (last_part) {
+              last_part.to = Math.min(last_part.to, point);
+            }
+
+            var new_part = {};
+            if (parts.length == 1) {
+              new_parts.push({from: point, to: parts[0].to, content: coloredText(parts[0])});
+              return;
+            }
+
+            var to = parts[0].to;
+            parts.forEach(function(p){if (p.to < to) {to = p.to;}});
+
+            parts = parts.sort(function(a, b) {
               return a.fileindex - b.fileindex;
             });
 
-            contents = items.map(function(t){
+            var contents = parts.map(function(t){
               return coloredText(t);
             });
-            merged_records.push({from: start, to: finish, content: contents.join("\n")});
 
-            if (index_end < data.length) {
-              index_start = index_end;
-            } else {
-              break;
-            }
-          }
+            new_parts.push({from: point, to: to, content: contents.join("\n")});
+          });
 
           var z = 0;
-          var ret = merged_records.map(function(item){
+          var ret = new_parts.map(function(item){
             z++;
             return recordToText(z, item);
           });
+
+          window.srt.result = new_parts;
 
           return ret.join("\n\n");
         };
